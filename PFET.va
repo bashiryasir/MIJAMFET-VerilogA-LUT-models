@@ -1,0 +1,68 @@
+`include "constants.vams"
+
+`include "disciplines.vams"
+
+
+module PFET(d,g,s);
+
+inout d,g,s;
+
+electrical g,d,s;
+
+real Ids, Cgs, Cgd, Qgs, Qgd, Qg;
+
+real VgsEff;
+
+integer out_file;
+
+parameter real W=1;
+
+
+analog 
+begin
+
+
+Ids=$table_model(V(d,s), (V(g,s)), "IdVg-PFET.tbl","1LL,1LL");
+
+Cgd=$table_model(V(d,s), (V(g,s)), "CGD-PFET.tbl","1LL,1LL");
+
+Cgs=$table_model(V(d,s), (V(g,s)), "CGS-PFET.tbl","1LL,1LL");
+
+
+if(analysis("dc")) 
+begin
+    
+I(d,s) <+ 1*Ids*W;
+
+end
+
+else 
+begin
+  
+if(analysis("tran")) 
+begin
+      
+Qgd = (W*1*Cgd)*(V(g,d));
+      
+Qgs = (W*1*Cgs)*(V(g,s));
+      
+Qg=Qgd+Qgs;
+      
+I(d,s) <+ 1*Ids*W ;
+      
+I(d) <+ ddt(-1*Qgd);
+      
+I(g) <+ ddt(Qg);
+      
+I(s) <+ ddt(-1*Qgs);
+  
+end
+
+end
+
+
+
+
+end
+
+endmodule
